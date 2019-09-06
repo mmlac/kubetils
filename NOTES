@@ -1,0 +1,21 @@
+# This file is recognizing code and other sources used in this project
+
+
+## imagePullSecretAdmission
+The controller is based on the example by StackRox: [stackrox/admission-controller-webhook-demo](https://github.com/stackrox/admission-controller-webhook-demo/tree/73d05d4284edb2213596fa44e54dc855696b8ec5)
+
+/*
+Copyright (c) 2019 StackRox Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
