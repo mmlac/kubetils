@@ -48,10 +48,6 @@ type patchOperation struct {
 // operations to be applied in case of success, or the error that will be shown when the operation is rejected.
 type admitFunc func(*v1beta1.AdmissionRequest) ([]patchOperation, error)
 
-// isKubeNamespace checks if the given namespace is a Kubernetes-owned namespace. (kube-system or kube-public)
-func isKubeNamespace(ns string) bool {
-	return ns == metav1.NamespacePublic || ns == metav1.NamespaceSystem
-}
 
 // doServeAdmitFunc parses the HTTP request for an admission controller webhook, and -- in case of a well-formed
 // request -- delegates the admission control logic to the given admitFunc. The response body is then returned as raw
@@ -96,11 +92,8 @@ func doServeAdmitFunc(w http.ResponseWriter, r *http.Request, config Config, adm
 	}
 
 	var patchOps []patchOperation
-	// Apply the admit() function only for non-Kubernetes namespaces. For objects in Kubernetes namespaces, return
-	// an empty set of patch operations.
-	if !isKubeNamespace(admissionReviewReq.Request.Namespace) {
-		patchOps, err = admit(admissionReviewReq.Request)
-	}
+	// Apply the admit() function
+	patchOps, err = admit(admissionReviewReq.Request)
 
 	if err != nil {
 		// If the handler returned an error, incorporate the error message into the response and deny the object
