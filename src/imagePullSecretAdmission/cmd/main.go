@@ -3,6 +3,15 @@ Copyright (c) 2019 Markus Lachinger. All rights reserved.
 Licensed under the MIT license. See LICENSE file in the project root for details.
 */
 
+/*  TODOS / FUTURE POSSIBLE FEATURES
+
+    TODO tests O:)
+    TODO Add ability to exclude more custom spaces in #removeExistingPullSecrets via config file
+    TODO Add ability to have an override flag for removing pull secrets. Needs another admission
+         controller to manage who is allowed to add these annotations or use it as emergency flag
+         under discretion.
+*/
+
 package main
 
 import (
@@ -34,6 +43,58 @@ type Config struct {
 	namespaceRestrictions map[string]string
 }
 
+
+
+
+
+
+
+// Remove user-provided image pull secrets and add managed ones based on configuration.
+// This allows also blocking certain registries / paths from specific namespaces.
+//
+// Examples of use-cases can be found in the tests:  TODO O:)
+func manageImagePullSecrets(req *v1beta1.AdmissionRequest) ([]patchOperation, error) {
+	// Slice of patches being returned
+	var patches []patchOperation
+
+	// This handler should only get called on Pod objects as per the MutatingWebhookConfiguration in the YAML file.
+	// However, if (for whatever reason) this gets invoked on an object of a different kind, issue a log message but
+	// let the object request pass through otherwise.
+	if req.Resource != podResource {
+		log.Printf("expect resource to be %s", podResource)
+		return nil, nil
+	}
+
+
+	// Parse the Pod object.
+	raw       := req.Object.Raw
+	namespace := req.Namespace
+	pod       := corev1.Pod{}
+	if _, _, err := universalDeserializer.Decode(raw, nil, &pod); err != nil {
+		return nil, fmt.Errorf("could not deserialize pod object: %v", err)
+	}
+
+	patches = append(patches, removeExistingPullSecrets(namespace, pod)...)
+
+
+	// filter by config entries
+
+	// create patches for pod based on rules
+
+	return patches, nil
+}
+
+// Remove any ImagePullSecret that the user has added, unless it's in the Kubernetes or istio system spaces
+// The idea is that only managed image pull secrets are allowed.
+func removeExistingPullSecrets(ns string, pod corev1.Pod) []patchOperation {
+	if ns == metav1.NamespacePublic || ns == metav1.NamespaceSystem  || ns == "istio-system" {
+		return nil
+	} else if len(pod.Spec.ImagePullSecrets) == 0 {
+		return nil
+	} else {
+		return []patchOperation{patchOperation{Op: "remove", Path: "/spec/ImagePullSecrets"}}
+	}
+}
 
 
 
@@ -108,7 +169,6 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 
 	return patches, nil
 }
-
 
 // Start http server, pass request through admissionFuncHandler to parse request,
 // run applySecurityDefaults function and form the proper HTTP response.
