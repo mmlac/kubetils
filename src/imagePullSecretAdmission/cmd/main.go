@@ -10,6 +10,13 @@ Licensed under the MIT license. See LICENSE file in the project root for details
     TODO Add ability to have an override flag for removing pull secrets. Needs another admission
          controller to manage who is allowed to add these annotations or use it as emergency flag
          under discretion.
+    TODO Have a second set of rules that does image admission itself, i.e. has a regex of
+         namespaceRegex -> imageRegex
+         if there is no match, reject the pod.
+         If YAML is guaranteed to keep the order in the parsing we can do more complex allow/deny
+         override rules. Probably not "most specific wins"
+         To reject a request, our controller logic needs to return an error back to the handling logic
+         import "errors"   errors.New("error message")
 */
 
 package main
