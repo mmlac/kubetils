@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "imagepullsecrets.go",
         "admission_controller.go",
         "main.go",
     ],

@@ -46,7 +46,7 @@ type patchOperation struct {
 
 // admitFunc is a callback for admission controller logic. Given an AdmissionRequest, it returns the sequence of patch
 // operations to be applied in case of success, or the error that will be shown when the operation is rejected.
-type admitFunc func(*v1beta1.AdmissionRequest) ([]patchOperation, error)
+type admitFunc func(*v1beta1.AdmissionRequest, Config) ([]patchOperation, error)
 
 
 // doServeAdmitFunc parses the HTTP request for an admission controller webhook, and -- in case of a well-formed
@@ -93,7 +93,7 @@ func doServeAdmitFunc(w http.ResponseWriter, r *http.Request, config Config, adm
 
 	var patchOps []patchOperation
 	// Apply the admit() function
-	patchOps, err = admit(admissionReviewReq.Request)
+	patchOps, err = admit(admissionReviewReq.Request, config)
 
 	if err != nil {
 		// If the handler returned an error, incorporate the error message into the response and deny the object
