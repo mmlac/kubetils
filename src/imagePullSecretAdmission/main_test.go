@@ -6,8 +6,9 @@ import (
 	"testing"
 	"errors"
 	"strings"
-	"k8s.io/api/admission/v1beta1"
 	"encoding/json"
+	"k8s.io/api/admission/v1beta1"
+
 )
 
 
@@ -19,7 +20,11 @@ var defaultConfig Config = Config {
 }
 
 func kubeSystemDefaultBody() string {
-	review := &v1beta1.AdmissionReview{}
+	review := &v1beta1.AdmissionReview{
+		Request: &v1beta1.AdmissionRequest{
+			UID: "test-uid",
+		},
+	}
 	js, err := json.Marshal(review)
 	if err != nil {
 		errors.New("Unable to Marshal the kubeSystemDefaultBody AdmissionReview object to JSON")
@@ -37,10 +42,16 @@ func (errReader) Read(p []byte) (n int, err error) {
 
 
 
-// type Config struct {
-// 	application          map[string]string
-// 	imagePullSecretRules map[string]map[string]string
-// }
+// Test the 'happy path' of the HTTP handling code without testing the
+// functionality of the admission handler
+func blankFuncMux(config Config) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.Handle("/mutate", admitFuncHandler(config,
+		func(*v1beta1.AdmissionRequest, Config) ([]patchOperation, error){
+			return nil, nil}))
+	return mux
+}
+
 
 // Create a request handler for the Mux we use in the server and apply the request
 // to it. Return the response recorder for evaluation of the result.
@@ -53,6 +64,7 @@ func makeRequest(request *http.Request, conf Config) *httptest.ResponseRecorder 
 
 // Ensure all requests with verbs other than POST are rejected
 func TestForbiddenHttpVerbs(t *testing.T) {
+	const wantStatus, wantString = http.StatusMethodNotAllowed, "invalid method"
 	config := defaultConfig
 
 	notAllowedVerbs := []string {"GET", "HEAD", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"}
@@ -66,13 +78,13 @@ func TestForbiddenHttpVerbs(t *testing.T) {
 
 			recorder := makeRequest(req, config)
 
-			if status := recorder.Code; status != http.StatusMethodNotAllowed {
+			if status := recorder.Code; status != wantStatus {
 				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, http.StatusMethodNotAllowed)
+					status, wantStatus)
 			}
-			if body := recorder.Body.String(); !strings.Contains(body, "invalid method") {
-				t.Errorf("handler returned wrong body: got '%v' want %v",
-					body, "containing 'invalid method'")
+			if body := recorder.Body.String(); !strings.Contains(body, wantString) {
+				t.Errorf("handler returned wrong body: got '%v' want containing '%v'",
+					body, wantString)
 			}
 		})
 	}
@@ -82,6 +94,7 @@ func TestForbiddenHttpVerbs(t *testing.T) {
 
 // Tests a proper return if the server fails to read the body
 func TestEmptyBody(t *testing.T) {
+	const wantStatus, wantString = http.StatusBadRequest, "could not read request body"
 	config := defaultConfig
 
 	req, err := http.NewRequest("POST", "/mutate", errReader(0))
@@ -91,13 +104,13 @@ func TestEmptyBody(t *testing.T) {
 
 	recorder := makeRequest(req, config)
 
-	if status := recorder.Code; status != http.StatusBadRequest {
+	if status := recorder.Code; status != wantStatus {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusBadRequest)
+			status, wantStatus)
 	}
-	if body := recorder.Body.String(); !strings.Contains(body, "could not read request body") {
-		t.Errorf("handler returned wrong body: got '%v' want %v",
-			body, "containing 'could not read request body'")
+	if body := recorder.Body.String(); !strings.Contains(body, wantString) {
+		t.Errorf("handler returned wrong body: got '%v' want containing '%v'",
+			body, wantString)
 	}
 }
 
@@ -105,6 +118,7 @@ func TestEmptyBody(t *testing.T) {
 
 // Tests that the wrong Content Type will be rejected
 func TestWrongContentType(t *testing.T) {
+	const wantStatus, wantString = http.StatusBadRequest, "unsupported content type"
 	config := defaultConfig
 
 	headers := map[string]map[string][]string{
@@ -123,19 +137,44 @@ func TestWrongContentType(t *testing.T) {
 
 			recorder := makeRequest(req, config)
 
-			if status := recorder.Code; status != http.StatusBadRequest {
+			if status := recorder.Code; status != wantStatus {
 				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, http.StatusBadRequest)
+					status, wantStatus)
 			}
-
-			if body := recorder.Body.String(); !strings.Contains(body, "unsupported content type") {
-				t.Errorf("handler returned wrong body: got '%v' want %v",
-				         body, "containing 'unsupported content type'")
+			if body := recorder.Body.String(); !strings.Contains(body, wantString) {
+				t.Errorf("handler returned wrong body: got '%v' want containing '%v'",
+					body, wantString)
 			}
 
 		})
 	}
 }
+
+// Tests a properly formed request
+func TestProperlyFormedRequest(t *testing.T) {
+	const wantStatus, wantString = http.StatusOK, "\"allowed\":true"
+	config := defaultConfig
+
+	req, err := http.NewRequest("POST", "/mutate", strings.NewReader(kubeSystemDefaultBody()))
+	if err != nil {
+		t.Fatalf("Error creating the request: %v", err)
+	}
+
+	req.Header = map[string][]string{"Content-Type": {"application/json"}}
+
+	recorder := makeRequest(req, config)
+
+	if status := recorder.Code; status != wantStatus {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, wantStatus)
+	}
+	if body := recorder.Body.String(); !strings.Contains(body, wantString) {
+		t.Errorf("handler returned wrong body: got '%v' want containing '%v'",
+			body, wantString)
+	}
+}
+
+
 
 
 // func TestValidKubeSystemRequest(t *testing.T) {

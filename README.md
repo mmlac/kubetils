@@ -13,6 +13,10 @@ well as for enforcing rules for limiting which namespaces can pull from where.
 The latter (still) only does that by omitting pull secrets, i.e. cannot stop a
 pod from pulling from the public DockerHub
 
+# license
+MIT license. See LICENSE file.
+
+
 # build
 ```
 cd src
@@ -23,5 +27,17 @@ This project uses [bazel](https://bazel.build), [gazelle](https://github.com/baz
 Dependencies are vendored for bazel to work correctly with k8s.io dependencies.
 Added to git for completion and ensuring stable builds no matter what.
 
-# license
-MIT license. See LICENSE file.
+## testing
+`bazel test --test_arg=-test.v --test_output=error //...`
+
+## coverage
+```
+bazel coverage //...
+    # will output file paths, similar to ......../execroot/__main__/bazel-out/k8-fastbuild/testlogs/imagePullSecretAdmission/go_default_test/coverage.dat
+
+go tool cover -html=<file from above> -o coverage.html
+```
+
+The coverage.html file is then a coverage file highlighting the test coverage
+over the files.  
+`bazel coverage --combined-report=lcov` might be useful for aggregated coverage.
