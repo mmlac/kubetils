@@ -49,7 +49,11 @@ type Config struct {
 
 
 
-
+func Mux(config Config) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.Handle("/mutate", admitFuncHandler(config, manageImagePullSecrets))
+	return mux
+}
 
 
 
@@ -67,9 +71,8 @@ func main() {
 	certPath := filepath.Join(tlsDir, tlsCertFile)
 	keyPath  := filepath.Join(tlsDir, tlsKeyFile)
 
-	mux := http.NewServeMux()
-	mux.Handle("/mutate", admitFuncHandler(config, manageImagePullSecrets))
-	server := &http.Server{
+	mux := Mux(config)
+ 	server := &http.Server{
 		// We listen on port 8443 such that we do not need root privileges or extra capabilities for this server.
 		// The Service object will take care of mapping this port to the HTTPS port 443.
 		Addr:    ":8443",
