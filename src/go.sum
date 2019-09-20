@@ -40,6 +40,7 @@ gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 k8s.io/api v0.0.0-20190805182141-5e2f71e44c7f h1:DFpVIDKD7vcYNYMirs3ecZjryngD1cqSosRS8bu2+0o=
 k8s.io/api v0.0.0-20190805182141-5e2f71e44c7f/go.mod h1:iuAfoD4hCxJ8Onx9kaTIt30j7jUFS00AXQi6QMi99vA=
+k8s.io/api v0.0.0-20190919035539-41700d9d0c5b h1:QLjLBrTjhxqEictUHOZYswNkgcsb85g8QLJKWbCPJv8=
 k8s.io/apimachinery v0.0.0-20190629003722-e20a3a656cff h1:xDwHiDiMvjKW1AJRktBdhLmP/qTMyZouurIR4J4Kdis=
 k8s.io/apimachinery v0.0.0-20190629003722-e20a3a656cff/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
 k8s.io/klog v0.4.0 h1:lCJCxf/LIowc2IGS9TPjWDyXY4nOmdGdfcwwDQCOURQ=

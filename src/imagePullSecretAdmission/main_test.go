@@ -15,7 +15,7 @@ import (
 
 var defaultConfig Config = Config {
 	imagePullSecretRules: map[string]map[string]string {
-		"*": map[string]string {"*": "testSecret"},
+		".*": map[string]string {".*": "testSecret"},
 	},
 }
 
@@ -27,7 +27,7 @@ func kubeSystemDefaultBody() string {
 	}
 	js, err := json.Marshal(review)
 	if err != nil {
-		errors.New("Unable to Marshal the kubeSystemDefaultBody AdmissionReview object to JSON")
+		panic("Unable to Marshal the kubeSystemDefaultBody AdmissionReview object to JSON")
 	}
 	return string(js)
 }

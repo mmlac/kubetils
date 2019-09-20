@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"regexp"
 	"k8s.io/api/admission/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 	"log"
 )
 
@@ -61,7 +61,7 @@ func removeExistingPullSecrets(ns string, pod corev1.Pod) []patchOperation {
 	if len(pod.Spec.ImagePullSecrets) == 0 {
 		return nil
 	} else {
-		return []patchOperation{patchOperation{Op: "remove", Path: "/spec/ImagePullSecrets"}}
+		return []patchOperation{patchOperation{Op: "remove", Path: "/spec/imagePullSecrets"}}
 	}
 }
 
@@ -70,7 +70,7 @@ func removeExistingPullSecrets(ns string, pod corev1.Pod) []patchOperation {
 // and outputs a unique list of images this pod uses
 func getUniquePodImages(pod corev1.Pod) []string {
 	// Use a map key-assignment as a uniqueness-check for images
-	var imageMap map[string]struct{}
+	imageMap := map[string]struct{}{}
 
 	//return as slice of unique images
 	var imageSlice []string
@@ -97,17 +97,12 @@ func getUniquePodImages(pod corev1.Pod) []string {
 // Takes all images this pod uses and matches it against the rules in the config.
 // Adds a unique set of imagePullSecrets as directed by the rules.
 func patchPod(imagePullSecretRules map[string]map[string]string, namespace string, images []string) []patchOperation {
-	var secretsMap map[string]struct{}
+	secretsMap := map[string]struct{}{}
 	var patches []patchOperation
 
 	// We need to create a fresh ImagePullSecrets array
 	// because we removed it with a patch beforehand or
 	// expect it to not exist
-	patches = append(patches, patchOperation {
-		Op: "add",
-			Path: "/spec/ImagePullSecrets",
-			Value: "[]",
-		})
 
 
 	for namespaceRegex, imageMap := range imagePullSecretRules {
@@ -124,10 +119,18 @@ func patchPod(imagePullSecretRules map[string]map[string]string, namespace strin
 		}
 	}
 
+	if len(secretsMap) > 0 {
+	patches = append(patches, patchOperation {
+		Op: "add",
+			Path: "/spec/imagePullSecrets",
+			Value: "[]",
+		})
+	}
+
 	for secret, _ := range secretsMap {
 		patches = append(patches, patchOperation{
 			Op: "add",
-			Path: "/spec/ImagePullSecrets/-",
+			Path: "/spec/imagePullSecrets/-",
 			Value: secret,
 		})
 	}
