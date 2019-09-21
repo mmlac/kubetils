@@ -71,11 +71,7 @@ func TestForbiddenHttpVerbs(t *testing.T) {
 
 	for _, verb := range notAllowedVerbs {
 		t.Run(verb, func(t *testing.T) {
-			req, err := http.NewRequest(verb, "/mutate", nil)
-			if err != nil {
-				t.Fatalf("Error creating the request: %v", err)
-			}
-
+			req := httptest.NewRequest(verb, "/mutate", nil)
 			recorder := makeRequest(req, config)
 
 			if status := recorder.Code; status != wantStatus {
@@ -97,11 +93,7 @@ func TestEmptyBody(t *testing.T) {
 	const wantStatus, wantString = http.StatusBadRequest, "could not read request body"
 	config := defaultConfig
 
-	req, err := http.NewRequest("POST", "/mutate", errReader(0))
-	if err != nil {
-		t.Fatalf("Error creating the request: %v", err)
-	}
-
+	req := httptest.NewRequest("POST", "/mutate", errReader(0))
 	recorder := makeRequest(req, config)
 
 	if status := recorder.Code; status != wantStatus {
@@ -128,11 +120,7 @@ func TestWrongContentType(t *testing.T) {
 
 	for name, hdr := range headers {
 		t.Run(name, func(t *testing.T){
-			req, err := http.NewRequest("POST", "/mutate", strings.NewReader(""))
-			if err != nil {
-				t.Fatalf("Error creating the request: %v", err)
-			}
-
+			req := httptest.NewRequest("POST", "/mutate", strings.NewReader(""))
 			req.Header = hdr
 
 			recorder := makeRequest(req, config)
@@ -155,11 +143,7 @@ func TestProperlyFormedRequest(t *testing.T) {
 	const wantStatus, wantString = http.StatusOK, "\"allowed\":true"
 	config := defaultConfig
 
-	req, err := http.NewRequest("POST", "/mutate", strings.NewReader(kubeSystemDefaultBody()))
-	if err != nil {
-		t.Fatalf("Error creating the request: %v", err)
-	}
-
+	req := httptest.NewRequest("POST", "/mutate", strings.NewReader(kubeSystemDefaultBody()))
 	req.Header = map[string][]string{"Content-Type": {"application/json"}}
 
 	recorder := makeRequest(req, config)
@@ -181,11 +165,7 @@ func TestProperlyFormedRequest(t *testing.T) {
 // 	config  := defaultConfig
 // 	content := kubeSystemRequest
 
-// 	req, err := http.NewRequest("GET", "/health-check", nil)
-// 	if err != nil {
-// 		t.Fatalf("Error creating the request: %v", err)
-// 	}
-
+// 	req := httptest.NewRequest("GET", "/health-check", nil)
 
 // 	recorder := makeRequest(req, config)
 
