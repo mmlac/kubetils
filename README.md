@@ -27,6 +27,8 @@ This project uses [bazel](https://bazel.build), [gazelle](https://github.com/baz
 Dependencies are vendored for bazel to work correctly with k8s.io dependencies.
 Added to git for completion and ensuring stable builds no matter what.
 
+
+
 ## testing
 `bazel test --test_arg=-test.v --test_output=error //...`
 
@@ -41,3 +43,15 @@ go tool cover -html=<file from above> -o coverage.html
 The coverage.html file is then a coverage file highlighting the test coverage
 over the files.  
 `bazel coverage --combined-report=lcov` might be useful for aggregated coverage.
+
+
+## known issues & quirks
+
+If you build on macOS and run into an error similar to `Xcode version must be
+specified to use an Apple CROSSTOOL.** try the following:  
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license
+bazel clean --expunge
+```
+Reference: https://stackoverflow.com/questions/45276830/xcode-version-must-be-specified-to-use-an-apple-crosstool

@@ -17,6 +17,7 @@ Licensed under the MIT license. See LICENSE file in the project root for details
          override rules. Probably not "most specific wins"
          To reject a request, our controller logic needs to return an error back to the handling logic
          import "errors"   errors.New("error message")
+    TODO Consider wrapping all dependencies into a server type
 */
 
 package main
@@ -54,7 +55,6 @@ func Mux(config Config) *http.ServeMux {
 	mux.Handle("/mutate", admitFuncHandler(config, manageImagePullSecrets))
 	return mux
 }
-
 
 
 // Start http server, pass request through admissionFuncHandler to parse request,
