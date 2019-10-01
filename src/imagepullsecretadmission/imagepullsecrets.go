@@ -47,8 +47,8 @@ func manageImagePullSecrets(req *v1beta1.AdmissionRequest, config Config) ([]pat
 	images    := getUniquePodImages(pod)
 	patches    = append(patches, removeExistingPullSecrets(namespace, pod)...)
 
-	if config.imagePullSecretRules != nil {
-		patches = append(patches, patchPod(config.imagePullSecretRules, namespace, images)...)
+	if config.ImagePullSecretRules != nil {
+		patches = append(patches, patchPod(config.ImagePullSecretRules, namespace, images)...)
 	}
 
 	return patches, nil
@@ -100,11 +100,6 @@ func patchPod(imagePullSecretRules map[string]map[string]string, namespace strin
 	secretsMap := map[string]struct{}{}
 	var patches []patchOperation
 
-	// We need to create a fresh ImagePullSecrets array
-	// because we removed it with a patch beforehand or
-	// expect it to not exist
-
-
 	for namespaceRegex, imageMap := range imagePullSecretRules {
 		match, _ := regexp.MatchString(namespaceRegex, namespace)
 		if match {
@@ -119,19 +114,26 @@ func patchPod(imagePullSecretRules map[string]map[string]string, namespace strin
 		}
 	}
 
+	// We need to create a fresh ImagePullSecrets array
+	// because we removed it with a patch beforehand or
+	// expect it to not exist
 	if len(secretsMap) > 0 {
 	patches = append(patches, patchOperation {
 		Op: "add",
 			Path: "/spec/imagePullSecrets",
-			Value: "[]",
+			Value: []string{},
 		})
+	}
+
+	type ipsObject struct{
+		Name string `json:"name"`
 	}
 
 	for secret, _ := range secretsMap {
 		patches = append(patches, patchOperation{
 			Op: "add",
 			Path: "/spec/imagePullSecrets/-",
-			Value: secret,
+			Value: ipsObject{Name: secret},
 		})
 	}
 

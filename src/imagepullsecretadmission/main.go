@@ -44,8 +44,8 @@ var (
 )
 
 type Config struct {
-	application          map[string]string
-	imagePullSecretRules map[string]map[string]string
+	Application          map[string]string  `yaml:"application,omitempty"`
+	ImagePullSecretRules map[string]map[string]string `yaml:"imagePullSecretRules"`
 }
 
 

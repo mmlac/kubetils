@@ -20,8 +20,11 @@ imagePullSecretRules:
     "namespaceRegex":
         "imageRegex": ["list of secrets to add to imagePullSecrets array in PodSpec"]
     "default":
-        "us.gcr.io/*": ["gcr-secret"]
-        "eu.gcr.io/*": ["gcr-eu-secret"]
-    "*":
-        "*": ["dockerhub-default-credentials"]
+        "us.gcr.io/.*":
+        - "gcr-secret"]
+        "eu.gcr.io/.*":
+        - "gcr-eu-secret"
+    ".*":
+        ".*":
+        - "dockerhub-default-credentials"
 ```
