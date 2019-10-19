@@ -55,3 +55,9 @@ sudo xcodebuild -license
 bazel clean --expunge
 ```
 Reference: https://stackoverflow.com/questions/45276830/xcode-version-must-be-specified-to-use-an-apple-crosstool
+
+## TODOs
+- Check dependencies for licenses and their sublicenses
+- Run go-vet during CI build
+- Run tests with -race (at least on CI)
+- IPSA: Move http handler to generic middleware to support more admission controllers with the same code
